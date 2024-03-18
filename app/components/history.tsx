@@ -19,7 +19,7 @@ export default function HistoryComponent({ onSelectWord }: HistoryComponentProps
 
   const fetchHistory = async () => {
     try {
-      const response = await axios.get(`${process.env.API_BASE_URL}/api/history`);
+      const response = await axios.get(`https://flask-hello-world-jet-kappa-11.vercel.app/api/history`);
       setHistory(response.data);
     } catch (error) {
       console.error('Erro ao buscar o histórico:', error);
@@ -28,7 +28,7 @@ export default function HistoryComponent({ onSelectWord }: HistoryComponentProps
 
   const handleDeleteWord = async (word: string) => {
     try {
-      await axios.delete(`${process.env.API_BASE_URL}/api/history/${word}`);
+      await axios.delete(`https://flask-hello-world-jet-kappa-11.vercel.app/api/history/${word}`);
       fetchHistory(); // Atualizar o histórico após deletar a palavra
     } catch (error) {
       console.error('Erro ao deletar palavra:', error);
