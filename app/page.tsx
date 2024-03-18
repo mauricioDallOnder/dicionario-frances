@@ -55,10 +55,12 @@ export default function Home() {
     setShowTranslation(!showTranslation); // Alternar a exibição entre original e tradução
   };
 
-  const handleSelectWordFromHistory = (selectedWord: string) => {
-    setWord(selectedWord);
-    fetchTranslation(selectedWord);
-  };
+   const handleSelectWordFromHistory = (selectedWord: string, translation: string) => {
+  setWord(selectedWord);
+  setOriginalText(translation);
+  setShowTranslation(false); // Mostrar texto original por padrão
+};
+
 
   useEffect(() => {
     if (word) {
