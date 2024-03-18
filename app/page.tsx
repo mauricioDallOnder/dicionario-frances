@@ -50,14 +50,16 @@ export default function Home() {
      <>
       <Header />
       <Container component="main" maxWidth="lg">
-        <Grid container spacing={3} direction={{ xs: 'column-reverse', md: 'row' }}>
-          <Grid item xs={12} md={3} order={{ xs: 2, md: 1 }}>
+        <Grid container spacing={2} direction={{ xs: 'column-reverse', md: 'row' }}>
+          <Grid item xs={12} md={4}>
             <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
           </Grid>
-          <Grid item xs={12} md={9} order={{ xs: 1, md: 2 }}>
+          <Grid item xs={12} md={8}>
             <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
-              <Typography variant="h6" gutterBottom>Traduzir Palavra:</Typography>
-              <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px" }}>
+              <Typography variant="h6" gutterBottom>
+                Traduzir Palavra:
+              </Typography>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
                 <TextField
                   id="wordInput"
                   label="Digite uma palavra"
@@ -66,16 +68,18 @@ export default function Home() {
                   onChange={handleInputChange}
                   fullWidth
                 />
-                <Button type="submit" variant="contained" color="primary">Buscar</Button>
+                <Button type="submit" variant="contained" color="primary">
+                  Buscar
+                </Button>
               </form>
             </Paper>
             <Paper elevation={3} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>
-                {showTranslation ? "Tradução para o Português:" : "Texto Original em Francês:"}
+                {showTranslation ? 'Tradução para o Português:' : 'Texto Original em Francês:'}
               </Typography>
               <Box
                 dangerouslySetInnerHTML={{ __html: showTranslation ? translation : originalText }}
-                sx={{
+                 sx={{
                   border: "1px solid #ccc",
                   padding: "20px",
                   borderRadius: "4px",
@@ -114,7 +118,7 @@ export default function Home() {
                 color="secondary"
                 sx={{ mt: 2 }}
               >
-                {showTranslation ? "Mostrar Original em Francês" : "Traduzir para o Português"}
+                {showTranslation ? 'Mostrar Original em Francês' : 'Traduzir para o Português'}
               </Button>
             </Paper>
           </Grid>
