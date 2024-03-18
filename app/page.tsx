@@ -1,3 +1,4 @@
+'use client'
 import React, { ChangeEvent, useState } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
