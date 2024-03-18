@@ -1,16 +1,16 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Button } from '@mui/material';
+import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
+// Define the type for the history data and props
 type HistoryType = Record<string, string>;
-type HistoryComponentProps = {
+interface HistoryComponentProps {
   onSelectWord: (word: string, translation: string) => void;
-};
+}
 
-export default function HistoryComponent({ onSelectWord }: HistoryComponentProps) {
+const HistoryComponent: React.FC<HistoryComponentProps> = ({ onSelectWord }) => {
   const [history, setHistory] = useState<HistoryType>({});
 
   useEffect(() => {
@@ -29,21 +29,17 @@ export default function HistoryComponent({ onSelectWord }: HistoryComponentProps
   const handleDeleteWord = async (word: string) => {
     try {
       await axios.delete(`http://127.0.0.1:5328/api/history/${word}`);
-      fetchHistory(); // Atualizar o histórico após deletar a palavra
+      fetchHistory(); // Refresh history after deleting a word
     } catch (error) {
       console.error('Erro ao deletar palavra:', error);
     }
   };
-
- 
-
 
   return (
     <Paper elevation={3} sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
         Histórico de Traduções
       </Typography>
-      
       <TableContainer component={Paper}>
         <Table aria-label="simple table">
           <TableBody>
@@ -64,4 +60,7 @@ export default function HistoryComponent({ onSelectWord }: HistoryComponentProps
       </TableContainer>
     </Paper>
   );
-}
+};
+
+export default HistoryComponent;
+
