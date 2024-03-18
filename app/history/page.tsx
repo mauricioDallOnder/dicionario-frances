@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Button } from '@mui/material';
