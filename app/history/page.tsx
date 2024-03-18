@@ -4,13 +4,14 @@ import axios from 'axios';
 import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-// Define the type for the history data and props
-type HistoryType = Record<string, string>;
 interface HistoryComponentProps {
   onSelectWord: (word: string, translation: string) => void;
 }
 
-const HistoryComponent: React.FC<HistoryComponentProps> = ({ onSelectWord }) => {
+// tipo para o histórico: um objeto com chaves e valores do tipo string
+type HistoryType = Record<string, string>;
+
+export default function HistoryComponent({ onSelectWord }: HistoryComponentProps) {
   const [history, setHistory] = useState<HistoryType>({});
 
   useEffect(() => {
@@ -62,5 +63,5 @@ const HistoryComponent: React.FC<HistoryComponentProps> = ({ onSelectWord }) => 
   );
 };
 
-export default HistoryComponent;
+
 
