@@ -2,7 +2,7 @@
 import React, { ChangeEvent, useState, useEffect } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
-import HistoryComponent from "./history/page";
+
 import {
   TextField,
   Button,
@@ -13,6 +13,7 @@ import {
   Paper,
 } from "@mui/material";
 import Header from "./components/Header";
+import HistoryComponent from "./components/page";
 
 export default function Home() {
   const [word, setWord] = useState("");
