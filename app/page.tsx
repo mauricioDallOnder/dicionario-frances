@@ -57,7 +57,7 @@ export default function Home() {
           <Grid item xs={12} md={8}>
             <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
               <Typography variant="h6" gutterBottom>
-                Traduzir Palavra:
+                Buscar uma Palavra:
               </Typography>
               <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
                 <TextField
@@ -104,10 +104,10 @@ export default function Home() {
                     fontWeight: 'bold',
                   },
                   '& a': {
-                    color: "primary.main",
+                    color: "black",
                     textDecoration: "none",
                     '&:hover': {
-                      textDecoration: "underline",
+                       color: "black",
                     },
                   },
                 }}
