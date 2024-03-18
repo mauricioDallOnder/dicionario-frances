@@ -71,9 +71,7 @@ export default function Home() {
       <Header />
       <Container component="main" maxWidth="lg">
         <Grid container spacing={3}>
-          <Grid item xs={12} md={3}>
-            <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
-          </Grid>
+          
           <Grid item xs={12} md={9}>
             <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
               <Typography variant="h6" gutterBottom>
@@ -158,6 +156,10 @@ export default function Home() {
               />
               
             </Paper>
+           
+          </Grid>
+           <Grid item xs={12} md={3}>
+            <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
           </Grid>
         </Grid>
       </Container>
