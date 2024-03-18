@@ -75,7 +75,7 @@ export default function Home() {
           <Grid item xs={12} md={9}>
             <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
               <Typography variant="h6" gutterBottom>
-                Traduzir Palavra:
+                Buscar Palavra:
               </Typography>
               <TextField
                 id="wordInput"
