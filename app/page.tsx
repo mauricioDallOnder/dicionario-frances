@@ -28,7 +28,7 @@ export default function Home() {
   const fetchTranslation = async (selectedWord: string) => {
     try {
       const response = await axios.get(
-        `${process.env.API_BASE_URL}/api/definitions?word=${encodeURIComponent(
+        `https://flask-hello-world-jet-kappa-11.vercel.app/api/definitions?word=${encodeURIComponent(
           selectedWord
         )}`
       );
@@ -44,7 +44,7 @@ export default function Home() {
       // Se não estiver mostrando a tradução, traduzir
       try {
         const response = await axios.post(
-          `${process.env.API_BASE_URL}/api/translate`,
+          `https://flask-hello-world-jet-kappa-11.vercel.app/api/translate`,
           { text: originalText }
         );
         setTranslation(DOMPurify.sanitize(response.data.translation));
