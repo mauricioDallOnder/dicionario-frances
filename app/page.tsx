@@ -79,11 +79,42 @@ export default function Home() {
               </Typography>
               <Box
                 dangerouslySetInnerHTML={{ __html: showTranslation ? translation : originalText }}
-                sx={{
+                 sx={{
                   border: "1px solid #ccc",
                   padding: "20px",
                   borderRadius: "4px",
-                  bgcolor: "grey.100"
+                  bgcolor: "grey.100",
+                  typography: "body1",
+                  '& h2': { // Estilizando as tags h2
+                    typography: "h6",
+                    color: "secondary.main",
+                  },
+                  '& p': { // Estilizando parágrafos
+                    marginBottom: "0.5rem",
+                  },
+                  '& ul, & ol': { // Estilizando listas
+                    listStyleType: 'none',
+                    paddingLeft: '20px',
+                    '& li': { // Estilizando itens de lista
+                      paddingTop: "0.25rem",
+                      paddingBottom: "0.25rem",
+                      paddingLeft: 0,
+                    },
+                  },
+                  '& .AdresseDefinition': { // Estilizando elementos com a classe específica
+                    fontWeight: 'bold',
+                  },
+                  '& a': { // Estilizando links
+                    color: "primary.main",
+                    textDecoration: "none",
+                    '&:hover': {
+                      textDecoration: "underline",
+                    
+                    },
+                  },
+                  
+                 
+                  
                 }}
               />
               <Button
