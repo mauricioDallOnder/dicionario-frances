@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Box, Container } from '@mui/material';
 import Image from "next/image";
-import iconeBandeira from './iconeFranca.svg'; // Suponha que iconeBandeira seja o caminho para sua imagem de bandeira
+import iconeBandeira from './iconeFranca.svg'; 
 
 export default function Header() {
   return (
