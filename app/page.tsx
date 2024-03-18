@@ -99,7 +99,7 @@ export default function Home() {
               <Typography variant="h6" gutterBottom>
                 {showTranslation
                   ? "Tradução para o Português:"
-                  : "Texto Original em Francês:"}
+                  : "Texto em Francês:"}
               </Typography>
               <Button
                 onClick={translateText}
@@ -108,7 +108,7 @@ export default function Home() {
                 sx={{ mt: 2 }}
               >
                 {showTranslation
-                  ? "Mostrar Original em Francês"
+                  ? "Texto em Francês"
                   : "Traduzir para o Português"}
               </Button>
               </Box>
