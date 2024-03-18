@@ -47,18 +47,16 @@ export default function Home() {
   };
 
   return (
-    <>
+     <>
       <Header />
       <Container component="main" maxWidth="lg">
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={3}>
+        <Grid container spacing={3} direction={{ xs: 'column-reverse', md: 'row' }}>
+          <Grid item xs={12} md={3} order={{ xs: 2, md: 1 }}>
             <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
           </Grid>
-          <Grid item xs={12} md={9}>
+          <Grid item xs={12} md={9} order={{ xs: 1, md: 2 }}>
             <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Traduzir Palavra:
-              </Typography>
+              <Typography variant="h6" gutterBottom>Traduzir Palavra:</Typography>
               <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px" }}>
                 <TextField
                   id="wordInput"
@@ -68,9 +66,7 @@ export default function Home() {
                   onChange={handleInputChange}
                   fullWidth
                 />
-                <Button type="submit" variant="contained" color="primary">
-                  Buscar
-                </Button>
+                <Button type="submit" variant="contained" color="primary">Buscar</Button>
               </form>
             </Paper>
             <Paper elevation={3} sx={{ p: 2 }}>
@@ -79,42 +75,37 @@ export default function Home() {
               </Typography>
               <Box
                 dangerouslySetInnerHTML={{ __html: showTranslation ? translation : originalText }}
-                 sx={{
+                sx={{
                   border: "1px solid #ccc",
                   padding: "20px",
                   borderRadius: "4px",
                   bgcolor: "grey.100",
                   typography: "body1",
-                  '& h2': { // Estilizando as tags h2
+                  '& h2': {
                     typography: "h6",
                     color: "secondary.main",
                   },
-                  '& p': { // Estilizando parágrafos
+                  '& p': {
                     marginBottom: "0.5rem",
                   },
-                  '& ul, & ol': { // Estilizando listas
+                  '& ul, & ol': {
                     listStyleType: 'none',
                     paddingLeft: '20px',
-                    '& li': { // Estilizando itens de lista
+                    '& li': {
                       paddingTop: "0.25rem",
                       paddingBottom: "0.25rem",
-                      paddingLeft: 0,
                     },
                   },
-                  '& .AdresseDefinition': { // Estilizando elementos com a classe específica
+                  '& .AdresseDefinition': {
                     fontWeight: 'bold',
                   },
-                  '& a': { // Estilizando links
+                  '& a': {
                     color: "primary.main",
                     textDecoration: "none",
                     '&:hover': {
                       textDecoration: "underline",
-                    
                     },
                   },
-                  
-                 
-                  
                 }}
               />
               <Button
