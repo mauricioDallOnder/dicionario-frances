@@ -13,7 +13,7 @@ import {
   Paper,
 } from "@mui/material";
 import Header from "./components/Header";
-import HistoryComponent from "./components/page";
+import HistoryComponent from "./components/history";
 
 export default function Home() {
   const [word, setWord] = useState("");
