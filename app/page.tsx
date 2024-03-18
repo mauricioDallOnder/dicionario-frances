@@ -2,7 +2,7 @@
 import React, { ChangeEvent, useState, useEffect } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
-import HistoryComponent from "./history/page";
+import HistoryComponent from "./history";
 import {
   TextField,
   Button,
