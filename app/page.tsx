@@ -28,7 +28,7 @@ export default function Home() {
   const fetchTranslation = async (selectedWord: string) => {
     try {
       const response = await axios.get(
-        `http://127.0.0.1:5328/api/definitions?word=${encodeURIComponent(
+        `http://127.0.0.1:5000/api/definitions?word=${encodeURIComponent(
           selectedWord
         )}`
       );
@@ -44,7 +44,7 @@ export default function Home() {
       // Se não estiver mostrando a tradução, traduzir
       try {
         const response = await axios.post(
-          `http://127.0.0.1:5328/api/translate`,
+          `http://127.0.0.1:5000/api/translate`,
           { text: originalText }
         );
         setTranslation(DOMPurify.sanitize(response.data.translation));
