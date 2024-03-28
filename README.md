@@ -31,6 +31,3 @@ pip install -r requirements.txt
 # Run the Flask server and the Next.js client in parallel
 npm run dev
 
-
-## License
-- MIT
