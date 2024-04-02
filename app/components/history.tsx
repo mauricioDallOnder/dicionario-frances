@@ -4,7 +4,7 @@ import axios from 'axios';
 import { IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-
+import ExportToExcel from './ExportToExcel';
 type HistoryType = Record<string, string>;
 type HistoryComponentProps = {
   onSelectWord: (word: string, translation: string) => void;
@@ -62,6 +62,7 @@ export default function HistoryComponent({ onSelectWord }: HistoryComponentProps
           </TableBody>
         </Table>
       </TableContainer>
+       <ExportToExcel history={history} />
     </Paper>
   );
 }
