@@ -112,14 +112,7 @@ export default function Home() {
                   },
                 }}
               />
-              <Button
-                onClick={translateText}
-                variant="contained"
-                color="secondary"
-                sx={{ mt: 2 }}
-              >
-                {showTranslation ? 'Mostrar Original em Francês' : 'Traduzir para o Português'}
-              </Button>
+              
             </Paper>
           </Grid>
         </Grid>
