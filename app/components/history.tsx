@@ -62,7 +62,8 @@ export default function HistoryComponent({ onSelectWord }: HistoryComponentProps
           </TableBody>
         </Table>
       </TableContainer>
-       <ExportToExcel history={history} />
+     
     </Paper>
   );
 }
+//<ExportToExcel history={history} />
