@@ -110,3 +110,19 @@ a {
     letter-spacing: 0.0075em;
     color: green;
 }
+
+.DivisionDefinition{
+    font-weight: 500;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    letter-spacing: 0.0075em;
+}
+
+.lienarticle{
+   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    letter-spacing: 0.0075em;
+    color: black;
+}
