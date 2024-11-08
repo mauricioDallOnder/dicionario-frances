@@ -116,6 +116,7 @@ a {
     font-size: 1.25rem;
     line-height: 1.6;
     letter-spacing: 0.0075em;
+     text-align: justify;
 }
 
 .lienarticle,.Synonymes{
