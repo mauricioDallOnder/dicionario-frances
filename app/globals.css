@@ -118,7 +118,7 @@ a {
     letter-spacing: 0.0075em;
 }
 
-.lienarticle{
+.lienarticle,.Synonymes{
    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 600;
     font-size: 1.25rem;
