@@ -2,82 +2,122 @@
 import React, { ChangeEvent, useState, useEffect } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
-import { 
-  TextField, 
-  Button, 
-  Container, 
-  Typography, 
-  Box, 
-  Grid, 
-  Paper 
+import {
+  TextField,
+  Button,
+  Container,
+  Typography,
+  Box,
+  Grid,
+  Paper,
 } from "@mui/material";
 import Header from "./components/Header";
 import HistoryComponent from "./components/history";
 
-// 1) Função para extrair até 3 definições do HTML.
-function parseDefinitions(htmlString: string): Array<string> {
-  // DOMParser (nativo do navegador) converte uma string HTML em Document.
+interface ParsedDefinition {
+  numDef: string;
+  mainText: string;
+  example?: string;
+  synonyms?: string;
+  contraries?: string;
+}
+
+function parseDefinitionItem(li: HTMLLIElement): ParsedDefinition {
+  const result: ParsedDefinition = {
+    numDef: "",
+    mainText: "",
+    example: undefined,
+    synonyms: undefined,
+    contraries: undefined,
+  };
+
+  // Pegar número da definição
+  const numSpan = li.querySelector("span.numDef");
+  if (numSpan) {
+    result.numDef = numSpan.textContent?.trim() || "";
+  }
+
+  // Remover <span class="numDef"> do clone e obter o texto principal
+  const liClone = li.cloneNode(true) as HTMLLIElement;
+  const spanDef = liClone.querySelector("span.numDef");
+  if (spanDef) spanDef.remove();
+  result.mainText = liClone.textContent?.trim() || "";
+
+  // Exemplo
+  const exampleSpan = li.querySelector("span.ExempleDefinition");
+  if (exampleSpan) {
+    result.example = exampleSpan.textContent?.trim() || "";
+  }
+
+  // Sinônimos e Contrários
+  const libelleList = Array.from(li.querySelectorAll("p.LibelleSynonyme"));
+  libelleList.forEach((p) => {
+    const label = p.textContent?.toLowerCase().trim() || "";
+    if (label.includes("synonym")) {
+      const next = p.nextElementSibling as HTMLElement | null;
+      if (next && next.classList.contains("Synonymes")) {
+        result.synonyms = next.textContent?.trim() || "";
+      }
+    } else if (label.includes("contrair")) {
+      const next = p.nextElementSibling as HTMLElement | null;
+      if (next && next.classList.contains("Synonymes")) {
+        result.contraries = next.textContent?.trim() || "";
+      }
+    }
+  });
+
+  return result;
+}
+
+function parseDefinitions(htmlString: string): ParsedDefinition[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlString, "text/html");
-  
-  // Seleciona todas as <li> que tenham a classe "DivisionDefinition".
-  const lis = Array.from(doc.querySelectorAll("li.DivisionDefinition"));
-  
-  // Se quisermos apenas as 3 primeiras definições, podemos fazer um slice(0,3).
-  const firstThree = lis.slice(0, 3);
-  
-  // Retornamos um array contendo o HTML de cada <li> (outerHTML).
-  return firstThree.map(li => li.outerHTML);
+  const liElements = Array.from(
+    doc.querySelectorAll("li.DivisionDefinition")
+  ) as HTMLLIElement[];
+  const firstThree = liElements.slice(0, 3); // pega só até 3
+  return firstThree.map((li) => parseDefinitionItem(li));
 }
 
 export default function Home() {
   const [word, setWord] = useState("");
   const [originalText, setOriginalText] = useState("");
-  const [definitionList, setDefinitionList] = useState<string[]>([]);
+  const [definitions, setDefinitions] = useState<ParsedDefinition[]>([]);
 
-  // Quando o usuário digita no campo de input
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setWord(event.target.value);
   };
 
-  // 2) Função para buscar a definição no backend
+  // Buscar definição no backend
   const fetchDefinition = async (selectedWord: string) => {
     try {
-      // Ajuste a URL abaixo para o seu endpoint real.
       const response = await axios.get(
         `https://flask-hello-world-jet-kappa-11.vercel.app/api/definitions?word=${encodeURIComponent(selectedWord)}`
       );
-
-      // Sanitiza o HTML recebido
       const sanitizedHtml = DOMPurify.sanitize(response.data.definition);
-
-      // Armazena o HTML completo para debug ou exibir como quiser
       setOriginalText(sanitizedHtml);
-
     } catch (error) {
       console.error("Falha ao buscar a definição:", error);
     }
   };
 
-  // 3) Quando o usuário submete o formulário, chamamos a API
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     fetchDefinition(word);
   };
 
-  // 4) Quando o usuário clica em uma palavra do histórico
   const handleSelectWordFromHistory = (selectedWord: string) => {
     setWord(selectedWord);
     fetchDefinition(selectedWord);
   };
 
-  // 5) Toda vez que `originalText` mudar, vamos extrair até 3 definições
+  // Quando originalText mudar, parseamos as definições
   useEffect(() => {
     if (originalText) {
-      const definitions = parseDefinitions(originalText);
-      setDefinitionList(definitions);
+      const parsed = parseDefinitions(originalText);
+      setDefinitions(parsed);
     } else {
-      setDefinitionList([]);
+      setDefinitions([]);
     }
   }, [originalText]);
 
@@ -85,23 +125,20 @@ export default function Home() {
     <>
       <Header />
       <Container component="main" maxWidth="lg">
-        {/* Layout em Grid: menu de histórico à esquerda, conteúdo à direita */}
-        <Grid container spacing={2} direction={{ xs: 'column-reverse', md: 'row' }}>
-          
-          {/* Coluna da esquerda: histórico */}
+        <Grid container spacing={2} direction={{ xs: "column-reverse", md: "row" }}>
+          {/* Histórico */}
           <Grid item xs={12} md={4}>
             <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
           </Grid>
 
-          {/* Coluna da direita: buscar palavra e exibir definições */}
+          {/* Conteúdo principal */}
           <Grid item xs={12} md={8}>
-            
-            {/* Formulário de busca */}
-            <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
+            {/* Form de busca */}
+            <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Buscar uma Palavra:
               </Typography>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
+              <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px" }}>
                 <TextField
                   id="wordInput"
                   label="Digite uma palavra"
@@ -116,52 +153,61 @@ export default function Home() {
               </form>
             </Paper>
 
-            {/* Exibir a palavra + definições */}
-            {originalText && (
-              <Paper elevation={3} sx={{ p: 2, marginBottom: 2 }}>
-                {/* Podemos mostrar o título (se existir no HTML) */}
+            {/* Exibir definições parseadas */}
+            {definitions.length > 0 && (
+              <Paper elevation={3} sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
-                  {/* Você pode usar a própria "word" como título, ou extrair do HTML */}
-                  Palavra: {word}
-                </Typography>
-                
-                <Typography variant="body1" gutterBottom>
-                  (Exibindo o significado principal + 2 significados adicionais, se existirem)
+                  Definições (máximo 3):
                 </Typography>
 
-                {/* Exibição das definições separadas, no estilo "Definições encontradas (separadas):" */}
-                {definitionList.map((definitionHTML, index) => (
-                  <Paper
+                {definitions.map((defItem, index) => (
+                  <Box
                     key={index}
-                    elevation={1}
                     sx={{
+                      mb: 3,
                       p: 2,
-                      mb: 2,
-                      "& li.DivisionDefinition": {
-                        // aqui você personaliza o estilo de cada li
-                        borderLeft: "4px solid #1976d2",
-                        paddingLeft: "0.5rem",
-                        marginBottom: 0
-                      }
+                      borderLeft: "4px solid #1976d2",
+                      backgroundColor: "#fefefe",
                     }}
                   >
-                    <Box
-                      dangerouslySetInnerHTML={{ __html: definitionHTML }}
-                      // Aqui podemos aplicar classes ou estilos para refinar
-                      sx={{
-                        "& .ExempleDefinition": {
-                          fontStyle: "italic",
-                          color: "#555",
-                        },
-                        "& .Synonymes": {
-                          fontWeight: "bold",
-                          marginTop: "0.5rem",
-                        },
-                        // etc.
-                      }}
-                    />
-                  </Paper>
+                    {/* Linha 1: "2. Appliquer une chose..." */}
+                    <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
+                      {/* Monta "2. Appliquer..." */}
+                      {defItem.numDef} {defItem.mainText}
+                    </Typography>
+
+                    {/* Linha 2: Example: Appuyer un doigt... (se existir) */}
+                    {defItem.example && (
+                      <Typography variant="body1" sx={{ mb: 1 }}>
+                        <strong>Example:</strong> {defItem.example}
+                      </Typography>
+                    )}
+
+                    {/* Linha 3: Synonyme: ... (se existir) */}
+                    {defItem.synonyms && (
+                      <Typography variant="body1" sx={{ mb: 1, color: "green" }}>
+                        <strong>Synonyme:</strong> {defItem.synonyms}
+                      </Typography>
+                    )}
+
+                    {/* Linha 4: Contraires: ... (se existir) */}
+                    {defItem.contraries && (
+                      <Typography variant="body1" sx={{ mb: 1, color: "red" }}>
+                        <strong>Contraires:</strong> {defItem.contraries}
+                      </Typography>
+                    )}
+                  </Box>
                 ))}
+              </Paper>
+            )}
+
+            {/* Se não houve definições parseadas e originalText não estiver vazio,
+                pode ter sido "Aucun résultat trouvé" ou algo assim */}
+            {originalText && definitions.length === 0 && (
+              <Paper elevation={3} sx={{ p: 2 }}>
+                <Typography variant="body1">
+                  Nenhuma definição encontrada ou não foi possível parsear.
+                </Typography>
               </Paper>
             )}
           </Grid>
