@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { ChangeEvent, useState, useEffect } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
@@ -11,86 +11,30 @@ import {
   Grid,
   Paper,
 } from "@mui/material";
+
+// Importe seus componentes conforme sua estrutura:
 import Header from "./components/Header";
 import HistoryComponent from "./components/history";
 
-/** Estrutura que iremos montar para cada definição. */
-interface ParsedDefinition {
-  numDef: string;      // "1.", "2." etc.
-  mainText: string;    // texto principal da definição
-  example?: string;    // se houver
-  synonyms?: string;   // se houver
-  contraries?: string; // se houver
-}
-
-/** Estrutura para o título e subtítulo (exemplo: "écouter", "verbe transitif Conjugaison", etc.) */
+/** Estrutura para o cabeçalho (título, categoria e origem). */
 interface ParsedHeader {
-  title: string;      // texto do <h2 class="AdresseDefinition">
-  catGram: string;    // texto do <p class="CatgramDefinition">
-  origin: string;     // texto do <p class="OrigineDefinition">
+  title: string;   // Ex.: " écouter"
+  catGram: string; // Ex.: "verbe transitif Conjugaison"
+  origin: string;  // Ex.: "(bas latin ascultare...)"
 }
 
-/** Faz parse de <li class="DivisionDefinition"> individualmente. */
-function parseDefinitionItem(li: HTMLLIElement): ParsedDefinition {
-  const result: ParsedDefinition = {
-    numDef: "",
-    mainText: "",
-  };
-
-  // 1) Capturar número da definição: <span class="numDef">2.</span>
-  const numSpan = li.querySelector("span.numDef");
-  if (numSpan) {
-    result.numDef = numSpan.textContent?.trim() || "";
-  }
-
-  // 2) Capturar texto principal, mas sem o <span.numDef>.
-  const liClone = li.cloneNode(true) as HTMLLIElement;
-  const spanDef = liClone.querySelector("span.numDef");
-  if (spanDef) spanDef.remove(); // remove do clone para não poluir
-  result.mainText = liClone.textContent?.trim() || "";
-
-  // 3) Capturar exemplo: <span class="ExempleDefinition">...</span>
-  const exampleSpan = li.querySelector("span.ExempleDefinition");
-  if (exampleSpan) {
-    result.example = exampleSpan.textContent?.trim() || "";
-  }
-
-  // 4) Capturar sinônimos e contrários.
-  //    - Geralmente vem em <p class="LibelleSynonyme">Synonymes :</p>
-  //      e logo abaixo <p class="Synonymes">agripper - retenir</p>
-  //    - IDem para Contraires
-  const libelleList = Array.from(li.querySelectorAll("p.LibelleSynonyme"));
-  
-  libelleList.forEach((p) => {
-    const label = p.textContent?.toLowerCase().trim() || "";
-    const next = p.nextElementSibling as HTMLElement | null;
-    if (!next || !next.classList.contains("Synonymes")) {
-      return;
-    }
-    // Pegamos o texto ex: "agripper - retenir"
-    const textValue = next.textContent?.trim() || "";
-
-    if (label.includes("synonym")) {
-      // Evita duplicar sinônimos caso apareçam 2x
-      if (!result.synonyms) {
-        result.synonyms = textValue;
-      } else if (!result.synonyms.includes(textValue)) {
-        result.synonyms += " " + textValue;
-      }
-    } else if (label.includes("contrair")) {
-      // Evita duplicar contrários
-      if (!result.contraries) {
-        result.contraries = textValue;
-      } else if (!result.contraries.includes(textValue)) {
-        result.contraries += " " + textValue;
-      }
-    }
-  });
-
-  return result;
+/** Estrutura para cada definição (no máximo 2). */
+interface ParsedDefinition {
+  numDef: string;      // Ex.: "1."
+  mainText: string;    // Ex.: "Qui fait intentionnellement du mal à autrui..."
+  example?: string;    // Ex.: "Un méchant homme."
+  synonyms?: string;   // Ex.: "brutal - cruel - dur..."
+  contraries?: string; // Ex.: "bon - gentil - humain..."
 }
 
-/** Faz parse do bloco de cabeçalho: h2.AdresseDefinition, p.CatgramDefinition, p.OrigineDefinition. */
+/**
+ * Faz parse do cabeçalho: <h2 class="AdresseDefinition">, <p class="CatgramDefinition">, <p class="OrigineDefinition">
+ */
 function parseHeader(doc: Document): ParsedHeader {
   const result: ParsedHeader = {
     title: "",
@@ -116,29 +60,96 @@ function parseHeader(doc: Document): ParsedHeader {
   return result;
 }
 
-/** Faz parse das definições principais (até 3) e do cabeçalho. */
-function parseHtmlFromLarousse(htmlString: string, maxDefinitions = 3) {
+/**
+ * Faz parse de um item <li class="DivisionDefinition">, removendo sinônimos, contrários e exemplos do texto principal.
+ */
+function parseDefinitionItem(li: HTMLLIElement): ParsedDefinition {
+  const result: ParsedDefinition = {
+    numDef: "",
+    mainText: "",
+  };
+
+  // 1) Capturar número da definição, ex.: <span class="numDef">1.</span>
+  const numSpan = li.querySelector("span.numDef");
+  if (numSpan) {
+    result.numDef = numSpan.textContent?.trim() || "";
+  }
+
+  // 2) Clonar o <li> para retirar elementos que não queremos no 'mainText'
+  const liClone = li.cloneNode(true) as HTMLLIElement;
+
+  // Remover <span class="numDef"> do clone
+  const spanDefClone = liClone.querySelector("span.numDef");
+  if (spanDefClone) {
+    spanDefClone.remove();
+  }
+
+  // 3) Capturar Example em <span class="ExempleDefinition"> e remover do clone
+  const exampleSpan = liClone.querySelector("span.ExempleDefinition");
+  if (exampleSpan) {
+    result.example = exampleSpan.textContent?.trim() || "";
+    exampleSpan.remove(); // remove do clone
+  }
+
+  // 4) Capturar sinônimos e contrários
+  const libelleList = Array.from(liClone.querySelectorAll("p.LibelleSynonyme"));
+
+  libelleList.forEach((p) => {
+    const label = p.textContent?.toLowerCase() || "";
+    const next = p.nextElementSibling as HTMLElement | null;
+    if (next && next.classList.contains("Synonymes")) {
+      const textValue = next.textContent?.trim() || "";
+
+      // Se for "Synonymes :"
+      if (label.includes("synonym")) {
+        result.synonyms = (result.synonyms || "") + textValue;
+      }
+      // Se for "Contraires :"
+      else if (label.includes("contrair")) {
+        result.contraries = (result.contraries || "") + textValue;
+      }
+
+      // Remove p.Synonymes do clone
+      next.remove();
+    }
+
+    // Remove p.LibelleSynonyme do clone
+    p.remove();
+  });
+
+  // 5) Agora liClone está sem sinônimos/contrários/exemplo. Pegamos o textContent como "mainText".
+  result.mainText = liClone.textContent?.trim() || "";
+
+  return result;
+}
+
+/**
+ * Faz o parse global do HTML do Larousse: cabeçalho e no máximo 2 definições.
+ */
+function parseHtmlFromLarousse(htmlString: string, maxDefs = 2) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlString, "text/html");
 
-  // 1) Pegar o cabeçalho
+  // 1) Cabeçalho
   const header = parseHeader(doc);
 
-  // 2) Pegar definições <li class="DivisionDefinition">
+  // 2) Definições
   const liElements = Array.from(
     doc.querySelectorAll("li.DivisionDefinition")
   ) as HTMLLIElement[];
-
-  // Pegamos até 'maxDefinitions' definições
-  const sliced = liElements.slice(0, maxDefinitions);
-  const parsedDefs = sliced.map((li) => parseDefinitionItem(li));
+  const sliced = liElements.slice(0, maxDefs);
+  const parsedDefs = sliced.map(parseDefinitionItem);
 
   return { header, definitions: parsedDefs };
 }
 
+/**
+ * Componente principal: busca a definição, exibe título, mostra até 2 definições,
+ * remove duplicações de sinônimos/contrários no texto principal, etc.
+ */
 export default function Home() {
   const [word, setWord] = useState("");
-  const [rawHtml, setRawHtml] = useState(""); // HTML bruto do Larousse
+  const [rawHtml, setRawHtml] = useState(""); // HTML retornado pela API
   const [header, setHeader] = useState<ParsedHeader>({
     title: "",
     catGram: "",
@@ -146,17 +157,18 @@ export default function Home() {
   });
   const [definitions, setDefinitions] = useState<ParsedDefinition[]>([]);
 
-  // Quando o usuário digita a palavra
+  // Quando o usuário digita no campo
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setWord(event.target.value);
   };
 
-  // Faz a busca na API
+  // Função que chama o backend para obter a definição
   const fetchDefinition = async (selectedWord: string) => {
     try {
       const response = await axios.get(
         `https://flask-hello-world-jet-kappa-11.vercel.app/api/definitions?word=${encodeURIComponent(selectedWord)}`
       );
+      // Sanitiza o HTML recebido
       const sanitizedHtml = DOMPurify.sanitize(response.data.definition);
       setRawHtml(sanitizedHtml);
     } catch (error) {
@@ -164,25 +176,24 @@ export default function Home() {
     }
   };
 
-  // Submissão do form
+  // Quando submeter o formulário
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     fetchDefinition(word);
   };
 
-  // Selecionar palavra do histórico
+  // Quando clicar em uma palavra do histórico
   const handleSelectWordFromHistory = (selectedWord: string) => {
     setWord(selectedWord);
     fetchDefinition(selectedWord);
   };
 
-  // Quando 'rawHtml' mudar, parseamos.
+  // Sempre que rawHtml muda, parseamos
   useEffect(() => {
     if (rawHtml) {
-      const parsed = parseHtmlFromLarousse(rawHtml, 3); 
-      // se quiser apenas 2 definições, troque por parseHtmlFromLarousse(rawHtml, 2)
-      setHeader(parsed.header);
-      setDefinitions(parsed.definitions);
+      const { header: hd, definitions: defs } = parseHtmlFromLarousse(rawHtml, 2);
+      setHeader(hd);
+      setDefinitions(defs);
     } else {
       setHeader({ title: "", catGram: "", origin: "" });
       setDefinitions([]);
@@ -194,12 +205,12 @@ export default function Home() {
       <Header />
       <Container component="main" maxWidth="lg">
         <Grid container spacing={2} direction={{ xs: "column-reverse", md: "row" }}>
-          {/* Histórico */}
+          {/* Lado esquerdo: Histórico */}
           <Grid item xs={12} md={4}>
             <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
           </Grid>
 
-          {/* Conteúdo principal */}
+          {/* Lado direito: conteúdo principal */}
           <Grid item xs={12} md={8}>
             {/* Formulário de busca */}
             <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
@@ -221,38 +232,42 @@ export default function Home() {
               </form>
             </Paper>
 
-            {/* Se tiver cabeçalho ou definições, exibir */}
+            {/* Exibir cabeçalho (title, catGram, origin) + definições */}
             {(header.title || definitions.length > 0) && (
-              <Paper elevation={3} sx={{ p: 2 }}>
-                {/* Exibir o cabeçalho/título */}
+              <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+                {/* Título (ex.: " écouter") */}
                 {header.title && (
-                  <Typography 
-                    variant="h5" 
-                    gutterBottom 
+                  <Typography
+                    variant="h5"
+                    gutterBottom
                     sx={{ fontWeight: "bold", color: "#333" }}
                   >
                     {header.title}
                   </Typography>
                 )}
 
-                {/* verbe transitif Conjugaison */}
+                {/* Categoria (ex.: "verbe transitif Conjugaison") */}
                 {header.catGram && (
                   <Typography variant="h6" gutterBottom sx={{ color: "#555" }}>
                     {header.catGram}
                   </Typography>
                 )}
 
-                {/* (bas latin ascultare, ...) */}
+                {/* Origem (ex.: "(bas latin ascultare, etc.)") */}
                 {header.origin && (
-                  <Typography variant="body1" gutterBottom sx={{ fontSize: "1.2rem", fontStyle: "italic" }}>
+                  <Typography
+                    variant="body1"
+                    gutterBottom
+                    sx={{ fontSize: "1.1rem", fontStyle: "italic" }}
+                  >
                     {header.origin}
                   </Typography>
                 )}
 
-                {/* Agora exibir as definições parseadas */}
-                {definitions.map((defItem, index) => (
+                {/* Lista de definições (no máximo 2) */}
+                {definitions.map((defItem, idx) => (
                   <Box
-                    key={index}
+                    key={idx}
                     sx={{
                       mt: 3,
                       p: 2,
@@ -260,43 +275,36 @@ export default function Home() {
                       backgroundColor: "#fefefe",
                     }}
                   >
-                    {/* 1) Exibir "numDef + mainText" em fonte maior */}
-                    <Typography variant="body1" sx={{ fontSize: "1.15rem", fontWeight: "bold", mb: 1 }}>
+                    {/* Linha principal: numero + texto */}
+                    <Typography
+                      variant="body1"
+                      sx={{ fontSize: "1.15rem", fontWeight: "bold", mb: 1 }}
+                    >
                       {defItem.numDef} {defItem.mainText}
                     </Typography>
 
-                    {/* 2) Exemplo em outra linha, prefixado com 'Example:' */}
+                    {/* Example */}
                     {defItem.example && (
                       <Typography variant="body1" sx={{ mb: 1 }}>
                         <strong>Example:</strong> {defItem.example}
                       </Typography>
                     )}
 
-                    {/* 3) Sinônimos em verde (na mesma linha, prefixado “Synonyme:”) */}
+                    {/* Synonyme (em verde) */}
                     {defItem.synonyms && (
                       <Typography
                         variant="body1"
-                        sx={{ 
-                          mb: 1, 
-                          color: "green", 
-                          fontWeight: "bold",
-                          whiteSpace: "pre-wrap" // se quiser quebrar nas reticências
-                        }}
+                        sx={{ mb: 1, color: "green", fontWeight: "bold" }}
                       >
                         Synonyme: {defItem.synonyms}
                       </Typography>
                     )}
 
-                    {/* 4) Contrários em vermelho (na mesma linha, prefixado “Contraires:”) */}
+                    {/* Contraires (em vermelho) */}
                     {defItem.contraries && (
                       <Typography
                         variant="body1"
-                        sx={{ 
-                          mb: 1, 
-                          color: "red", 
-                          fontWeight: "bold",
-                          whiteSpace: "pre-wrap"
-                        }}
+                        sx={{ mb: 1, color: "red", fontWeight: "bold" }}
                       >
                         Contraires: {defItem.contraries}
                       </Typography>
@@ -306,9 +314,9 @@ export default function Home() {
               </Paper>
             )}
 
-            {/* Se não houver nada, mas há rawHtml, pode ser “Aucun résultat” */}
+            {/* Se rawHtml existir, mas nada foi parseado, pode ser "Aucun résultat" */}
             {rawHtml && !header.title && definitions.length === 0 && (
-              <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
+              <Paper elevation={3} sx={{ p: 2 }}>
                 <Typography variant="body1" sx={{ color: "red" }}>
                   Aucun résultat trouvé ou não foi possível extrair definições.
                 </Typography>
