@@ -1,10 +1,9 @@
+// /app/page.tsx
 "use client";
-import React, { ChangeEvent, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import DOMPurify from "dompurify";
 import {
-  TextField,
-  Button,
   Container,
   Typography,
   Box,
@@ -12,30 +11,28 @@ import {
   Paper,
 } from "@mui/material";
 
-// Importe seus componentes conforme sua estrutura:
+// Importe seus componentes, incluindo o novo AutocompleteSearch
 import Header from "./components/Header";
 import HistoryComponent from "./components/history";
+import AutocompleteSearch from "./components/AutocompleteSearch"; // <-- NOVA IMPORTAÇÃO
 
-/** Estrutura para o cabeçalho (título, categoria e origem). */
+// --- Nenhuma alteração nas interfaces (ParsedHeader, ParsedDefinition) ---
 interface ParsedHeader {
-  title: string;   // Ex.: " écouter"
-  catGram: string; // Ex.: "verbe transitif Conjugaison"
-  origin: string;  // Ex.: "(bas latin ascultare...)"
+  title: string;
+  catGram: string;
+  origin: string;
 }
-
-/** Estrutura para cada definição (no máximo 2). */
 interface ParsedDefinition {
-  numDef: string;      // Ex.: "1."
-  mainText: string;    // Ex.: "Qui fait intentionnellement du mal à autrui..."
-  example?: string;    // Ex.: "Un méchant homme."
-  synonyms?: string;   // Ex.: "brutal - cruel - dur..."
-  contraries?: string; // Ex.: "bon - gentil - humain..."
+  numDef: string;
+  mainText: string;
+  example?: string;
+  synonyms?: string;
+  contraries?: string;
 }
 
-/**
- * Faz parse do cabeçalho: <h2 class="AdresseDefinition">, <p class="CatgramDefinition">, <p class="OrigineDefinition">
- */
+// --- Nenhuma alteração nas funções de parsing (parseHeader, parseDefinitionItem, parseHtmlFromLarousse) ---
 function parseHeader(doc: Document): ParsedHeader {
+  // ...código original sem alterações...
   const result: ParsedHeader = {
     title: "",
     catGram: "",
@@ -59,81 +56,56 @@ function parseHeader(doc: Document): ParsedHeader {
 
   return result;
 }
-
-/**
- * Faz parse de um item <li class="DivisionDefinition">, removendo sinônimos, contrários e exemplos do texto principal.
- */
 function parseDefinitionItem(li: HTMLLIElement): ParsedDefinition {
+  // ...código original sem alterações...
   const result: ParsedDefinition = {
     numDef: "",
     mainText: "",
   };
 
-  // 1) Capturar número da definição, ex.: <span class="numDef">1.</span>
   const numSpan = li.querySelector("span.numDef");
   if (numSpan) {
     result.numDef = numSpan.textContent?.trim() || "";
   }
 
-  // 2) Clonar o <li> para retirar elementos que não queremos no 'mainText'
   const liClone = li.cloneNode(true) as HTMLLIElement;
 
-  // Remover <span class="numDef"> do clone
   const spanDefClone = liClone.querySelector("span.numDef");
   if (spanDefClone) {
     spanDefClone.remove();
   }
 
-  // 3) Capturar Example em <span class="ExempleDefinition"> e remover do clone
   const exampleSpan = liClone.querySelector("span.ExempleDefinition");
   if (exampleSpan) {
     result.example = exampleSpan.textContent?.trim() || "";
-    exampleSpan.remove(); // remove do clone
+    exampleSpan.remove();
   }
-
-  // 4) Capturar sinônimos e contrários
+  
   const libelleList = Array.from(liClone.querySelectorAll("p.LibelleSynonyme"));
-
   libelleList.forEach((p) => {
     const label = p.textContent?.toLowerCase() || "";
     const next = p.nextElementSibling as HTMLElement | null;
     if (next && next.classList.contains("Synonymes")) {
       const textValue = next.textContent?.trim() || "";
-
-      // Se for "Synonymes :"
       if (label.includes("synonym")) {
         result.synonyms = (result.synonyms || "") + textValue;
       }
-      // Se for "Contraires :"
       else if (label.includes("contrair")) {
         result.contraries = (result.contraries || "") + textValue;
       }
-
-      // Remove p.Synonymes do clone
       next.remove();
     }
-
-    // Remove p.LibelleSynonyme do clone
     p.remove();
   });
-
-  // 5) Agora liClone está sem sinônimos/contrários/exemplo. Pegamos o textContent como "mainText".
   result.mainText = liClone.textContent?.trim() || "";
 
   return result;
 }
-
-/**
- * Faz o parse global do HTML do Larousse: cabeçalho e no máximo 2 definições.
- */
 function parseHtmlFromLarousse(htmlString: string, maxDefs = 2) {
+  // ...código original sem alterações...
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlString, "text/html");
-
-  // 1) Cabeçalho
   const header = parseHeader(doc);
-
-  // 2) Definições
   const liElements = Array.from(
     doc.querySelectorAll("li.DivisionDefinition")
   ) as HTMLLIElement[];
@@ -143,32 +115,32 @@ function parseHtmlFromLarousse(htmlString: string, maxDefs = 2) {
   return { header, definitions: parsedDefs };
 }
 
+
 /**
- * Componente principal: busca a definição, exibe título, mostra até 2 definições,
- * remove duplicações de sinônimos/contrários no texto principal, etc.
+ * Componente principal
  */
 export default function Home() {
-  const [word, setWord] = useState("");
-  const [rawHtml, setRawHtml] = useState(""); // HTML retornado pela API
+  const [word, setWord] = useState(""); // Mantemos este estado para saber a palavra atual
+  const [rawHtml, setRawHtml] = useState("");
   const [header, setHeader] = useState<ParsedHeader>({
     title: "",
     catGram: "",
     origin: "",
   });
   const [definitions, setDefinitions] = useState<ParsedDefinition[]>([]);
+  
+  // A função handleInputChange não é mais necessária aqui
+  // const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+  //   setWord(event.target.value);
+  // };
 
-  // Quando o usuário digita no campo
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setWord(event.target.value);
-  };
-
-  // Função que chama o backend para obter a definição
   const fetchDefinition = async (selectedWord: string) => {
+    if (!selectedWord) return; // Não busca se a palavra estiver vazia
+    setWord(selectedWord); // Atualiza o estado da palavra atual
     try {
       const response = await axios.get(
         `https://flask-hello-world-jet-kappa-11.vercel.app/api/definitions?word=${encodeURIComponent(selectedWord)}`
       );
-      // Sanitiza o HTML recebido
       const sanitizedHtml = DOMPurify.sanitize(response.data.definition);
       setRawHtml(sanitizedHtml);
     } catch (error) {
@@ -176,19 +148,17 @@ export default function Home() {
     }
   };
 
-  // Quando submeter o formulário
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    fetchDefinition(word);
+  // A função handleSubmit foi movida para o componente AutocompleteSearch
+  // Agora temos uma função que é passada como prop para o componente filho
+  const handleSearch = (searchedWord: string) => {
+    fetchDefinition(searchedWord);
   };
 
-  // Quando clicar em uma palavra do histórico
+  // Esta função continua a mesma
   const handleSelectWordFromHistory = (selectedWord: string) => {
-    setWord(selectedWord);
     fetchDefinition(selectedWord);
   };
 
-  // Sempre que rawHtml muda, parseamos
   useEffect(() => {
     if (rawHtml) {
       const { header: hd, definitions: defs } = parseHtmlFromLarousse(rawHtml, 2);
@@ -205,37 +175,23 @@ export default function Home() {
       <Header />
       <Container component="main" maxWidth="lg">
         <Grid container spacing={2} direction={{ xs: "column-reverse", md: "row" }}>
-          {/* Lado esquerdo: Histórico */}
           <Grid item xs={12} md={4}>
             <HistoryComponent onSelectWord={handleSelectWordFromHistory} />
           </Grid>
-
-          {/* Lado direito: conteúdo principal */}
           <Grid item xs={12} md={8}>
-            {/* Formulário de busca */}
             <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Buscar uma Palavra:
               </Typography>
-              <form onSubmit={handleSubmit} style={{ display: "flex", gap: "10px" }}>
-                <TextField
-                  id="wordInput"
-                  label="Digite uma palavra"
-                  variant="outlined"
-                  value={word}
-                  onChange={handleInputChange}
-                  fullWidth
-                />
-                <Button type="submit" variant="contained" color="primary">
-                  Buscar
-                </Button>
-              </form>
+              {/* ===== ÁREA MODIFICADA ===== */}
+              {/* Substituímos o <form> antigo pelo novo componente */}
+              <AutocompleteSearch onSearch={handleSearch} />
+              {/* =========================== */}
             </Paper>
 
-            {/* Exibir cabeçalho (title, catGram, origin) + definições */}
+            {/* O resto do código para exibir os resultados permanece o mesmo */}
             {(header.title || definitions.length > 0) && (
               <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-                {/* Título (ex.: " écouter") */}
                 {header.title && (
                   <Typography
                     variant="h5"
@@ -245,15 +201,11 @@ export default function Home() {
                     {header.title}
                   </Typography>
                 )}
-
-                {/* Categoria (ex.: "verbe transitif Conjugaison") */}
                 {header.catGram && (
                   <Typography variant="h6" gutterBottom sx={{ color: "#555" }}>
                     {header.catGram}
                   </Typography>
                 )}
-
-                {/* Origem (ex.: "(bas latin ascultare, etc.)") */}
                 {header.origin && (
                   <Typography
                     variant="body1"
@@ -263,8 +215,6 @@ export default function Home() {
                     {header.origin}
                   </Typography>
                 )}
-
-                {/* Lista de definições (no máximo 2) */}
                 {definitions.map((defItem, idx) => (
                   <Box
                     key={idx}
@@ -275,22 +225,17 @@ export default function Home() {
                       backgroundColor: "#fefefe",
                     }}
                   >
-                    {/* Linha principal: numero + texto */}
                     <Typography
                       variant="body1"
                       sx={{ fontSize: "1.15rem", fontWeight: "bold", mb: 1 }}
                     >
                       {defItem.numDef} {defItem.mainText}
                     </Typography>
-
-                    {/* Example */}
                     {defItem.example && (
                       <Typography variant="body1" sx={{ mb: 1 }}>
                         <strong>Example:</strong> {defItem.example}
                       </Typography>
                     )}
-
-                    {/* Synonyme (em verde) */}
                     {defItem.synonyms && (
                       <Typography
                         variant="body1"
@@ -299,8 +244,6 @@ export default function Home() {
                         Synonyme: {defItem.synonyms}
                       </Typography>
                     )}
-
-                    {/* Contraires (em vermelho) */}
                     {defItem.contraries && (
                       <Typography
                         variant="body1"
@@ -313,8 +256,6 @@ export default function Home() {
                 ))}
               </Paper>
             )}
-
-            {/* Se rawHtml existir, mas nada foi parseado, pode ser "Aucun résultat" */}
             {rawHtml && !header.title && definitions.length === 0 && (
               <Paper elevation={3} sx={{ p: 2 }}>
                 <Typography variant="body1" sx={{ color: "red" }}>
