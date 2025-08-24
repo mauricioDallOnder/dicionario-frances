@@ -15,6 +15,7 @@ import {
 import Header from "./components/Header";
 import HistoryComponent from "./components/history";
 import AutocompleteSearch from "./components/AutocompleteSearch"; // <-- NOVA IMPORTAÇÃO
+import TextToSpeechButton from "./components/TextToSpeechButton";
 
 // --- Nenhuma alteração nas interfaces (ParsedHeader, ParsedDefinition) ---
 interface ParsedHeader {
@@ -161,7 +162,7 @@ export default function Home() {
 
   useEffect(() => {
     if (rawHtml) {
-      const { header: hd, definitions: defs } = parseHtmlFromLarousse(rawHtml, 2);
+      const { header: hd, definitions: defs } = parseHtmlFromLarousse(rawHtml, 4);
       setHeader(hd);
       setDefinitions(defs);
     } else {
@@ -192,15 +193,22 @@ export default function Home() {
             {/* O resto do código para exibir os resultados permanece o mesmo */}
             {(header.title || definitions.length > 0) && (
               <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-                {header.title && (
-                  <Typography
-                    variant="h5"
-                    gutterBottom
-                    sx={{ fontWeight: "bold", color: "#333" }}
-                  >
-                    {header.title}
-                  </Typography>
-                )}
+               {/* Título com ícone de som */}
+                  {header.title && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Typography
+                        variant="h5"
+                        component="div" // Mudar para div para melhor semântica
+                        sx={{ fontWeight: 'bold', color: '#333' }}
+                      >
+                        {header.title}
+                      </Typography>
+                      <TextToSpeechButton 
+                        // Removemos caracteres especiais do início (como '') antes de passar para a leitura
+                        textToSpeak={header.title.replace(/[^a-zA-ZÀ-ÿ '-]/g, '').trim()} 
+                      />
+                    </Box>
+                  )}
                 {header.catGram && (
                   <Typography variant="h6" gutterBottom sx={{ color: "#555" }}>
                     {header.catGram}
