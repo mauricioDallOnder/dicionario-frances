@@ -27,7 +27,7 @@ export default function AutocompleteSearch({ onSearch, initialWord = "" }: Autoc
     // Usa um 'debounce' para esperar o usuário parar de digitar
     const delayDebounceFn = setTimeout(() => {
       // Chama nossa nova API
-      axios.get(`/api/search?term=${inputValue}`)
+      axios.get(`https://flask-hello-world-jet-kappa-11.vercel.app/api/search?term=${inputValue}`)
         .then(response => {
           setOptions(response.data);
           setLoading(false);
